@@ -17,6 +17,8 @@ public class GameController : MonoBehaviour
     [SerializeField] private int numRoundsPerGeneration;
     [SerializeField] private float mutationStrength;
     [SerializeField] private float fitnessPadding;
+    [SerializeField] private float difficultyGrowth;
+    [SerializeField] private float fitnessToProgress;
 
     [Header("Prefabs")]
     [SerializeField] private GameObject pTank;
@@ -34,6 +36,8 @@ public class GameController : MonoBehaviour
 
     private float roundTimer = 0f;
     private int roundCounter = 0;
+    private float difficulty = 0f;
+    private int generationCounter = 0;
 
 
     private void Start()
@@ -79,11 +83,11 @@ public class GameController : MonoBehaviour
                         if (x == -1 || x == gridSize.x || y == -1 || y == gridSize.y)
                         {
                             GameObject w = GameObject.Instantiate(pWall, board);
-                            w.transform.localPosition = new Vector3(x - gridSize.x / 2f, 0f, y - gridSize.y / 2f);
+                            w.transform.localPosition = new Vector3(x - gridSize.x / 2f + 0.5f, 0f, y - gridSize.y / 2f + 0.5f);
                             continue;
                         }
                         GameObject g = GameObject.Instantiate(pGround, board);
-                        g.transform.localPosition = new Vector3(x - gridSize.x / 2f, -0.5f, y - gridSize.y / 2f);
+                        g.transform.localPosition = new Vector3(x - gridSize.x / 2f + 0.5f, -0.5f, y - gridSize.y / 2f + 0.5f);
                     }
                 }
                 boards[i * concurrentBoards.y + j] = transform.Find("Board (" + (i * concurrentBoards.y + j) + ")");
@@ -109,12 +113,16 @@ public class GameController : MonoBehaviour
         {
             for (int j = 0; j < concurrentBoards.y; j++)
             {
+                foreach(MeshRenderer child in boards[i * concurrentBoards.y + j].GetComponentsInChildren<MeshRenderer>())
+                {
+                    child.material.color = unassignedTanks[0].color;
+                }
                 GameObject t = GameObject.Instantiate(pTank, boards[i * concurrentBoards.y + j]);
-                t.transform.localPosition = new Vector3(gridSize.x * (Random.value - 0.5f) * 0.8f, -0.4f, gridSize.y * (Random.value - 0.5f) * 0.8f);
-                t.transform.localEulerAngles = new Vector3(0f, Random.value * 360f, 0f);
+                t.transform.localPosition = new Vector3((gridSize.x - 1f) * Random.Range(-0.5f, -0.5f + difficulty), -0.4f, (gridSize.y - 1f) * Random.Range(-0.5f, -0.5f + difficulty));
+                t.transform.localEulerAngles = new Vector3(0f, (Random.value * 360f - 180f) * difficulty + 45f, 0f);
                 GameObject target = GameObject.Instantiate(pTarget, boards[i * concurrentBoards.y + j]);
                 target.name = "Target";
-                target.transform.localPosition = new Vector3(gridSize.x * (Random.value - 0.5f) * 0.8f, -0.4f, gridSize.y * (Random.value - 0.5f) * 0.8f);
+                target.transform.localPosition = new Vector3((gridSize.x - 1f) * Random.Range(0.5f - difficulty, 0.5f), -0.4f, (gridSize.y - 1f) * Random.Range(0.5f - difficulty, 0.5f));
 
                 //Random Assignment
                 /*
@@ -126,11 +134,11 @@ public class GameController : MonoBehaviour
 
                 //Ordered Assignment
                 Tank tank = unassignedTanks[0];
-                tankList.Add(tank);
-                unassignedTanks.RemoveAt(0);
-
                 tank.obj = t;
                 tank.target = target;
+
+                tankList.Add(tank);
+                unassignedTanks.RemoveAt(0);
             }
         }
     }
@@ -140,20 +148,14 @@ public class GameController : MonoBehaviour
         for (int i = 0; i < tankList.Count; i++)
         {
             float distToTarget = Vector3.Distance(tankList[i].obj.transform.position, tankList[i].target.transform.position);
-            tankList[i].score += Mathf.Max(5f - distToTarget, 0f);
-            tankList[i].score += 2f * Mathf.Max(1 + Vector3.Dot(tankList[i].obj.transform.forward, (tankList[i].target.transform.position-tankList[i].obj.transform.position).normalized),
+            float roundScore = 0f;
+            roundScore += Mathf.Max(5f - distToTarget, 0f);
+            roundScore += 2f * Mathf.Max(1 + Vector3.Dot(tankList[i].obj.transform.forward, (tankList[i].target.transform.position-tankList[i].obj.transform.position).normalized),
                                                 2f - distToTarget,
                                                 0f);
+            roundScore *= roundScore;
+            tankList[i].score += roundScore;
         }
-        roundCounter++;
-        if (roundCounter >= numRoundsPerGeneration)
-        {
-            roundCounter = 0;
-            Selection();
-            Reproduction();
-        }
-        else unassignedTanks = tankList;
-        
 
         for (int i = 0; i < concurrentBoards.x; i++)
         {
@@ -163,12 +165,22 @@ public class GameController : MonoBehaviour
                 Destroy(boards[i * concurrentBoards.y + j].Find("Target").gameObject);
             }
         }
+
+        roundCounter++;
+        if (roundCounter >= numRoundsPerGeneration)
+        {
+            roundCounter = 0;
+            Selection();
+            Reproduction();
+            generationCounter++;
+        }
+        else unassignedTanks = tankList;
+
         tankList = new List<Tank>();
     }
 
     private void Selection()
     {
-        int populationSize = tankList.Count;
         float totalScore = 0f;
         for (int i = 0; i < tankList.Count; i++)
         {
@@ -176,8 +188,13 @@ public class GameController : MonoBehaviour
             tankList[i].score += fitnessPadding;
             totalScore += tankList[i].score;
         }
-        Debug.Log(totalScore / (concurrentBoards.x * concurrentBoards.y) - fitnessPadding);
-        for (int r = 0; r < Mathf.Ceil(populationSize / 2f); r++)
+        float avgScore = totalScore / (boards.Length) - fitnessPadding;
+        Debug.Log(generationCounter + " : " + avgScore + " : " + difficulty);
+        if (avgScore > fitnessToProgress)
+        {
+            difficulty = Mathf.Min(1f, difficulty + difficultyGrowth);
+        }
+        for (int r = 0; r < Mathf.Ceil(boards.Length / 2f); r++)
         {
             float rand = Random.Range(0f, totalScore);
             for (int i = 0; i < tankList.Count; i++)

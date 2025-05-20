@@ -2,12 +2,14 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[System.Serializable]
 public class Tank
 {
     public GameObject obj;
     public TankNN nn;
     public GameObject target;
     public float score = 0f;
+    public Color color = Random.ColorHSV();
 
     public Tank(int[] layerSizes)
     {
@@ -16,11 +18,13 @@ public class Tank
 
     public Tank(Tank parent, float mutationStrength)
     {
-        nn = parent.nn;
+        nn = new TankNN(parent.nn);
         nn.Mutate(mutationStrength);
+        color = Color.Lerp(color, Random.ColorHSV(), mutationStrength / 10f);
     }
 }
 
+[System.Serializable]
 public class TankNN
 {
     Layer[] layers;
@@ -31,6 +35,15 @@ public class TankNN
         for (int i = 1; i < layerSizes.Length; i++)
         {
             layers[i - 1] = new Layer(layerSizes[i - 1], layerSizes[i]);
+        }
+    }
+
+    public TankNN(TankNN parent)
+    {
+        layers = new Layer[parent.layers.Length];
+        for (int i = 0; i < layers.Length; i++)
+        {
+            layers[i] = new Layer(parent.layers[i]);
         }
     }
 
@@ -53,6 +66,7 @@ public class TankNN
     }
 }
 
+[System.Serializable]
 public class Layer
 {
     public float[] weights;
@@ -63,6 +77,20 @@ public class Layer
         weights = new float[prevNumNodes * numNodes];
         biases = new float[numNodes];
         InitializeWithRandom();
+    }
+
+    public Layer(Layer parent)
+    {
+        weights = new float[parent.weights.Length];
+        biases = new float[parent.biases.Length];
+        for (int i = 0; i < weights.Length; i++)
+        {
+            weights[i] = parent.weights[i];
+        }
+        for (int i = 0; i < biases.Length; i++)
+        {
+            biases[i] = parent.biases[i];
+        }
     }
 
     public float[] FeedForward(float[] inputs)
