@@ -206,7 +206,9 @@ public class GameController : MonoBehaviour
         if (roundCounter >= numRoundsPerGeneration)
         {
             roundCounter = 0;
-            Selection();
+            //Selection();
+            Scoring();
+            SelectionByRank();
             Reproduction();
             generationCounter++;
         }
@@ -215,7 +217,7 @@ public class GameController : MonoBehaviour
         tankList = new List<Tank>();
     }
 
-    private void Selection()
+    private float Scoring()
     {
         float totalScore = 0f;
         for (int i = 0; i < tankList.Count; i++)
@@ -230,6 +232,12 @@ public class GameController : MonoBehaviour
         {
             difficulty = Mathf.Min(1f, difficulty + difficultyGrowth);
         }
+        return totalScore;
+    }
+
+    private void Selection(float totalScore)
+    {
+        
         for (int r = 0; r < Mathf.Ceil(boards.Length / 2f); r++)
         {
             float rand = Random.Range(0f, totalScore);
@@ -248,6 +256,24 @@ public class GameController : MonoBehaviour
         for (int i = 0; i < unassignedTanks.Count; i++)
         {
             unassignedTanks[i].score = 0;
+        }
+    }
+
+    private void SelectionByRank()
+    {
+        tankList.Sort((x, y) => y.score.CompareTo(x.score));
+        if (tankList.Count % 2 == 1) 
+        {
+            unassignedTanks.Add(tankList[0]);
+            tankList.RemoveAt(0); 
+        }
+        for (int i = 0; i < tankList.Count / 2; i++)
+        {
+            if (Random.value > i / tankList.Count)
+            {
+                unassignedTanks.Add(tankList[i]);
+            }
+            else unassignedTanks.Add(tankList[tankList.Count - i]);
         }
     }
 
