@@ -292,8 +292,13 @@ public class GameController : MonoBehaviour
         {
             Transform t = tankList[i].obj.transform;
             Transform target = tankList[i].target.transform;
-            float[] inputs = {  target.position.x - t.position.x,
-                                target.position.z - t.position.z,
+            Vector3 toTarget = target.position - t.position;
+            toTarget.y = 0;
+            float magnitude = toTarget.magnitude / gridSize.magnitude;
+            toTarget.Normalize();
+            float[] inputs = {  toTarget.x,
+                                toTarget.z,
+                                magnitude,
                                 t.forward.x,
                                 t.forward.z };
             float[] outputs = tankList[i].nn.FeedForward(inputs);
@@ -312,11 +317,11 @@ public class GameController : MonoBehaviour
             {
                 case 1:
                     didHit = Physics.BoxCast(t.position, Vector3.Scale(t.GetComponent<BoxCollider>().size, t.lossyScale), t.forward, t.rotation, Time.fixedDeltaTime * forwardSpeed, LayerMask.GetMask("Wall"));
-                    t.position += t.forward * Time.fixedDeltaTime * forwardSpeed * (didHit ? 0.5f : 1f);
+                    t.position += t.forward * Time.fixedDeltaTime * forwardSpeed * (didHit ? 0.3f : 1f);
                     break;
                 case 2:
                     didHit = Physics.BoxCast(t.position, Vector3.Scale(t.GetComponent<BoxCollider>().size, t.lossyScale), -t.forward, t.rotation, Time.fixedDeltaTime * backwardSpeed, LayerMask.GetMask("Wall"));
-                    t.position -= t.forward * Time.fixedDeltaTime * forwardSpeed * (didHit ? 0.5f : 1f);
+                    t.position -= t.forward * Time.fixedDeltaTime * forwardSpeed * (didHit ? 0.3f : 1f);
                     break;
                 case 3:
                     t.Rotate(new Vector3(0f, Time.fixedDeltaTime * turnSpeed, 0f));

@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 705507994}
-  m_IndirectSpecularColor: {r: 0.44657898, g: 0.4964133, b: 0.5748178, a: 1}
+  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -342,14 +342,14 @@ MonoBehaviour:
   forwardSpeed: 4
   backwardSpeed: 3
   turnSpeed: 250
-  layerSizes: 0400000010000000100000001000000005000000
-  concurrentBoards: {x: 10, y: 10}
-  roundLength: 3
+  layerSizes: 05000000080000000800000005000000
+  concurrentBoards: {x: 5, y: 5}
+  roundLength: 4
   numRoundsPerGeneration: 5
-  mutationStrength: 0.05
+  mutationStrength: 0.04
   fitnessPadding: 0
   difficultyGrowth: 0.02
-  fitnessToProgress: 45
+  fitnessToProgress: 42
   pTank: {fileID: 1780604551840259642, guid: 1ef462a858ef5f242898e9603f6be110, type: 3}
   pTarget: {fileID: 9019497058828367836, guid: 3561fe963dfad0644a03cd896d040ba2, type: 3}
   pShell: {fileID: 0}
