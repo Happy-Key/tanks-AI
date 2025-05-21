@@ -55,6 +55,8 @@ public class GameController : MonoBehaviour
 
     private void Update()
     {
+        if (Input.GetKeyDown(KeyCode.RightArrow)) Time.timeScale *= 2f;
+        if (Input.GetKeyDown(KeyCode.LeftArrow)) Time.timeScale /= 2f;
         roundTimer += Time.deltaTime;
         if (roundTimer >= roundLength)
         {
@@ -118,11 +120,45 @@ public class GameController : MonoBehaviour
                     child.material.color = unassignedTanks[0].color;
                 }
                 GameObject t = GameObject.Instantiate(pTank, boards[i * concurrentBoards.y + j]);
-                t.transform.localPosition = new Vector3((gridSize.x - 1f) * Random.Range(-0.5f, -0.5f + difficulty), -0.4f, (gridSize.y - 1f) * Random.Range(-0.5f, -0.5f + difficulty));
-                t.transform.localEulerAngles = new Vector3(0f, (Random.value * 360f - 180f) * difficulty + 45f, 0f);
+                float tankX = 0f, tankY = 0f, targetX = 0f, targetY = 0f;
+                switch (Random.Range(0, 4))
+                {
+                    case 0:
+                        tankX = (gridSize.x - 1f) * Random.Range(-0.5f, -0.5f + difficulty);
+                        tankY = (gridSize.y - 1f) * Random.Range(-0.5f, -0.5f + difficulty);
+                        targetX = (gridSize.x - 1f) * Random.Range(0.5f - difficulty, 0.5f);
+                        targetY = (gridSize.y - 1f) * Random.Range(0.5f - difficulty, 0.5f);
+                        break;
+                    case 1:
+                        tankX = (gridSize.x - 1f) * Random.Range(-0.5f, -0.5f + difficulty);
+                        tankY = (gridSize.y - 1f) * Random.Range(0.5f - difficulty, 0.5f);
+                        targetX = (gridSize.x - 1f) * Random.Range(0.5f - difficulty, 0.5f);
+                        targetY = (gridSize.y - 1f) * Random.Range(-0.5f, -0.5f + difficulty);
+                        break;
+                    case 2:
+                        tankX = (gridSize.x - 1f) * Random.Range(0.5f - difficulty, 0.5f);
+                        tankY = (gridSize.y - 1f) * Random.Range(0.5f - difficulty, 0.5f);
+                        targetX = (gridSize.x - 1f) * Random.Range(-0.5f, -0.5f + difficulty);
+                        targetY = (gridSize.y - 1f) * Random.Range(-0.5f, -0.5f + difficulty);
+                        break;
+                    case 3:
+                        tankX = (gridSize.x - 1f) * Random.Range(0.5f - difficulty, 0.5f);
+                        tankY = (gridSize.y - 1f) * Random.Range(-0.5f, -0.5f + difficulty);
+                        targetX = (gridSize.x - 1f) * Random.Range(-0.5f, -0.5f + difficulty);
+                        targetY = (gridSize.y - 1f) * Random.Range(0.5f - difficulty, 0.5f);
+                        break;
+                    default:
+                        break;
+                }
+
+                t.transform.localPosition = new Vector3(tankX, -0.4f, tankY);
+
                 GameObject target = GameObject.Instantiate(pTarget, boards[i * concurrentBoards.y + j]);
                 target.name = "Target";
-                target.transform.localPosition = new Vector3((gridSize.x - 1f) * Random.Range(0.5f - difficulty, 0.5f), -0.4f, (gridSize.y - 1f) * Random.Range(0.5f - difficulty, 0.5f));
+                target.transform.localPosition = new Vector3(targetX, -0.4f, targetY);
+
+                t.transform.LookAt(target.transform.position);
+                t.transform.Rotate(t.transform.up, (Random.value * 360f - 180f) * difficulty);
 
                 //Random Assignment
                 /*
@@ -245,13 +281,16 @@ public class GameController : MonoBehaviour
                     index = m;
                 }
             }
+            bool didHit;
             switch (index)
             {
                 case 1:
-                    t.position += t.forward * Time.fixedDeltaTime * forwardSpeed;
+                    didHit = Physics.BoxCast(t.position, Vector3.Scale(t.GetComponent<BoxCollider>().size, t.lossyScale), t.forward, t.rotation, Time.fixedDeltaTime * forwardSpeed, LayerMask.GetMask("Wall"));
+                    t.position += t.forward * Time.fixedDeltaTime * forwardSpeed * (didHit ? 0.5f : 1f);
                     break;
                 case 2:
-                    t.position -= t.forward * Time.fixedDeltaTime * backwardSpeed;
+                    didHit = Physics.BoxCast(t.position, Vector3.Scale(t.GetComponent<BoxCollider>().size, t.lossyScale), -t.forward, t.rotation, Time.fixedDeltaTime * backwardSpeed, LayerMask.GetMask("Wall"));
+                    t.position -= t.forward * Time.fixedDeltaTime * forwardSpeed * (didHit ? 0.5f : 1f);
                     break;
                 case 3:
                     t.Rotate(new Vector3(0f, Time.fixedDeltaTime * turnSpeed, 0f));

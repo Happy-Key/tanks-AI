@@ -59,10 +59,18 @@ public class TankNN
 
     public void Mutate(float mutationStrength)
     {
+        // Mutate all parameters at once
+        ///*
         for (int i = 0; i < layers.Length; i++)
         {
             layers[i].Mutate(mutationStrength);
         }
+        //*/
+
+        // Mutate only a group of parameters
+        /*
+        layers[Random.Range(0, layers.Length)].Mutate(mutationStrength);
+        */
     }
 }
 
@@ -110,14 +118,26 @@ public class Layer
 
     public void Mutate(float mutationStrength)
     {
+        // Mutate all parameters at once
+        ///*
         for (int i = 0; i < weights.Length; i++)
         {
-            weights[i] += (Random.value * 2f - 1f) * mutationStrength;
+            weights[i] += Utils.RandomGaussian(-1f, 1f) * mutationStrength;
         }
         for (int i = 0; i < biases.Length; i++)
         {
-            biases[i] += (Random.value * 2f - 1f) * mutationStrength;
+            biases[i] += Utils.RandomGaussian(-1f, 1f) * mutationStrength;
         }
+        //*/
+        //Mutate single neuron's inputs
+        /*
+        int rand = Random.Range(0, biases.Length);
+        biases[rand] += Utils.RandomGaussian(-1f, 1f) * mutationStrength;
+        for (int i = 0; i < weights.Length / biases.Length; i++)
+        {
+            weights[rand * weights.Length / biases.Length + i] += Utils.RandomGaussian(-1f, 1f) * mutationStrength;
+        }
+        */
     }
 
     private float ActivationFunction(float value)
@@ -147,5 +167,29 @@ public class Layer
         {
             biases[i] = 0f;
         }
+    }
+}
+
+public class Utils {
+    public static float RandomGaussian(float minValue = 0.0f, float maxValue = 1.0f)
+    {
+        float u, v, S;
+
+        do
+        {
+            u = 2.0f * Random.value - 1.0f;
+            v = 2.0f * Random.value - 1.0f;
+            S = u * u + v * v;
+        }
+        while (S >= 1.0f);
+
+        // Standard Normal Distribution
+        float std = u * Mathf.Sqrt(-2.0f * Mathf.Log(S) / S);
+
+        // Normal Distribution centered between the min and max value
+        // and clamped following the "three-sigma rule"
+        float mean = (minValue + maxValue) / 2.0f;
+        float sigma = (maxValue - mean) / 3.0f;
+        return Mathf.Clamp(std * sigma + mean, minValue, maxValue);
     }
 }
