@@ -29,6 +29,8 @@ public class GameController : MonoBehaviour
 
     [Header("Test")]
     [SerializeField] private float timeScale;
+    [SerializeField] private int seed;
+    [SerializeField] bool useRandomSeed;
 
     private List<Tank> tankList = new List<Tank>();
     private List<Tank> unassignedTanks = new List<Tank>();
@@ -42,6 +44,8 @@ public class GameController : MonoBehaviour
 
     private void Start()
     {
+        if (useRandomSeed) seed = Random.Range(int.MinValue, int.MaxValue);
+        Random.InitState(seed);
         Time.timeScale = timeScale;
         CreateBoards();
         CreateTanks();
@@ -111,6 +115,29 @@ public class GameController : MonoBehaviour
 
     private void StartRound()
     {
+        float tankX, tankY, targetX, targetY;
+        float randomRotation = (Random.value * 360f - 180f) * difficulty;
+        if (roundCounter % 4 == 0 || roundCounter % 4 == 1)
+        {
+            tankX = (gridSize.x - 1f) * Random.Range(-0.5f, -0.5f + difficulty);
+            targetX = (gridSize.x - 1f) * Random.Range(0.5f - difficulty, 0.5f);
+        }
+        else
+        {
+            tankX = (gridSize.x - 1f) * Random.Range(0.5f - difficulty, 0.5f);
+            targetX = (gridSize.x - 1f) * Random.Range(-0.5f, -0.5f + difficulty);
+        }
+        if (roundCounter % 2 == 0)
+        {
+            tankY = (gridSize.y - 1f) * Random.Range(-0.5f, -0.5f + difficulty);
+            targetY = (gridSize.y - 1f) * Random.Range(0.5f - difficulty, 0.5f);
+        }
+        else
+        {
+            tankY = (gridSize.y - 1f) * Random.Range(0.5f - difficulty, 0.5f);
+            targetY = (gridSize.y - 1f) * Random.Range(-0.5f, -0.5f + difficulty);
+        }
+
         for (int i = 0; i < concurrentBoards.x; i++)
         {
             for (int j = 0; j < concurrentBoards.y; j++)
@@ -120,36 +147,6 @@ public class GameController : MonoBehaviour
                     child.material.color = unassignedTanks[0].color;
                 }
                 GameObject t = GameObject.Instantiate(pTank, boards[i * concurrentBoards.y + j]);
-                float tankX = 0f, tankY = 0f, targetX = 0f, targetY = 0f;
-                switch (Random.Range(0, 4))
-                {
-                    case 0:
-                        tankX = (gridSize.x - 1f) * Random.Range(-0.5f, -0.5f + difficulty);
-                        tankY = (gridSize.y - 1f) * Random.Range(-0.5f, -0.5f + difficulty);
-                        targetX = (gridSize.x - 1f) * Random.Range(0.5f - difficulty, 0.5f);
-                        targetY = (gridSize.y - 1f) * Random.Range(0.5f - difficulty, 0.5f);
-                        break;
-                    case 1:
-                        tankX = (gridSize.x - 1f) * Random.Range(-0.5f, -0.5f + difficulty);
-                        tankY = (gridSize.y - 1f) * Random.Range(0.5f - difficulty, 0.5f);
-                        targetX = (gridSize.x - 1f) * Random.Range(0.5f - difficulty, 0.5f);
-                        targetY = (gridSize.y - 1f) * Random.Range(-0.5f, -0.5f + difficulty);
-                        break;
-                    case 2:
-                        tankX = (gridSize.x - 1f) * Random.Range(0.5f - difficulty, 0.5f);
-                        tankY = (gridSize.y - 1f) * Random.Range(0.5f - difficulty, 0.5f);
-                        targetX = (gridSize.x - 1f) * Random.Range(-0.5f, -0.5f + difficulty);
-                        targetY = (gridSize.y - 1f) * Random.Range(-0.5f, -0.5f + difficulty);
-                        break;
-                    case 3:
-                        tankX = (gridSize.x - 1f) * Random.Range(0.5f - difficulty, 0.5f);
-                        tankY = (gridSize.y - 1f) * Random.Range(-0.5f, -0.5f + difficulty);
-                        targetX = (gridSize.x - 1f) * Random.Range(-0.5f, -0.5f + difficulty);
-                        targetY = (gridSize.y - 1f) * Random.Range(0.5f - difficulty, 0.5f);
-                        break;
-                    default:
-                        break;
-                }
 
                 t.transform.localPosition = new Vector3(tankX, -0.4f, tankY);
 
@@ -158,7 +155,7 @@ public class GameController : MonoBehaviour
                 target.transform.localPosition = new Vector3(targetX, -0.4f, targetY);
 
                 t.transform.LookAt(target.transform.position);
-                t.transform.Rotate(t.transform.up, (Random.value * 360f - 180f) * difficulty);
+                t.transform.Rotate(t.transform.up, randomRotation);
 
                 //Random Assignment
                 /*

@@ -20,7 +20,7 @@ public class Tank
     {
         nn = new TankNN(parent.nn);
         nn.Mutate(mutationStrength);
-        color = Color.Lerp(color, Random.ColorHSV(), mutationStrength / 10f);
+        color = Color.Lerp(parent.color, Random.ColorHSV(), mutationStrength);
     }
 }
 
