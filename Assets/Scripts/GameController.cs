@@ -192,9 +192,9 @@ public class GameController : MonoBehaviour
             float roundScore = 0f;
             roundScore += Mathf.Max(5f - distToTarget, 0f);
             roundScore += 2f * Mathf.Max(1 + Vector3.Dot(tankList[i].obj.transform.forward, (tankList[i].target.transform.position-tankList[i].obj.transform.position).normalized),
-                                                2f - distToTarget,
+                                                (1f - distToTarget) * 2f,
                                                 0f);
-            roundScore *= roundScore;
+            //roundScore *= roundScore;
             tankList[i].score += roundScore;
         }
 
@@ -210,24 +210,6 @@ public class GameController : MonoBehaviour
         roundCounter++;
         if (roundCounter >= numRoundsPerGeneration)
         {
-            /*
-            for (int i = 0; i < concurrentBoards.x; i++)
-            {
-                for (int j = 0; j < concurrentBoards.y; j++)
-                {
-                    Transform board = boards[i * concurrentBoards.y + j];
-                    foreach (MeshRenderer mesh in board.GetComponentsInChildren<MeshRenderer>())
-                    {
-                        Destroy(mesh.material);
-                        Material m = new Material(boardMaterial);
-                        m.color = Color.white;
-                        mesh.material = m;
-                    }
-                }
-            }
-            */
-            print("Materials " + Resources.FindObjectsOfTypeAll(typeof(Material)).Length);
-
             roundCounter = 0;
             float totalScore = Scoring();
             if (selectionType == SelectionType.Fitness) Selection(totalScore);
