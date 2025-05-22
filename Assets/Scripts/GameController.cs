@@ -210,7 +210,7 @@ public class GameController : MonoBehaviour
             if (selectionType == SelectionType.Ranking) SelectionByRank();
             if (reproductionType == ReproductionType.Asexual) Reproduction();
             if (reproductionType == ReproductionType.SexualAverage) SexualAveragedReproduction();
-            if (reproductionType == ReproductionType.SexualCrossing) SexualAveragedReproduction();
+            if (reproductionType == ReproductionType.SexualCrossing) SexualCrossingReproduction();
             if (reproductionType == ReproductionType.Generation) AveragedReproduction();
             generationCounter++;
         }
