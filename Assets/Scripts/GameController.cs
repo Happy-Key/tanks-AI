@@ -107,7 +107,7 @@ public class GameController : MonoBehaviour
         {
             for (int j = 0; j < concurrentBoards.y; j++)
             {
-                Tank tank = new Tank(layerSizes);
+                Tank tank = new Tank(layerSizes, true);
                 unassignedTanks.Add(tank);
             }
         }
@@ -203,10 +203,11 @@ public class GameController : MonoBehaviour
         if (roundCounter >= numRoundsPerGeneration)
         {
             roundCounter = 0;
-            //Selection();
-            Scoring();
+            float totalScore = Scoring();
+            //Selection(totalScore);
             SelectionByRank();
-            Reproduction();
+            //Reproduction();
+            AveragedReproduction();
             generationCounter++;
         }
         else unassignedTanks = tankList;
@@ -279,6 +280,31 @@ public class GameController : MonoBehaviour
         for (int i = unassignedTanks.Count - 1; i >= 0; i--)
         {
             unassignedTanks.Add(new Tank(unassignedTanks[i], mutationStrength));
+            if (unassignedTanks.Count >= concurrentBoards.x * concurrentBoards.y) break;
+        }
+    }
+
+    private void AveragedReproduction()
+    {
+        Tank avg = new Tank(layerSizes, false);
+        for (int t = 0; t < unassignedTanks.Count; t++)
+        {
+            for (int i = 0; i < avg.nn.layers.Length; i++)
+            {
+                for (int j = 0; j < avg.nn.layers[i].weights.Length; j++)
+                {
+                    avg.nn.layers[i].weights[j] += unassignedTanks[t].nn.layers[i].weights[j] / unassignedTanks.Count;
+                }
+                for (int j = 0; j < avg.nn.layers[i].biases.Length; j++)
+                {
+                    avg.nn.layers[i].biases[j] += unassignedTanks[t].nn.layers[i].biases[j] / unassignedTanks.Count;
+                }
+            }
+            avg.color += unassignedTanks[t].color / unassignedTanks.Count;
+        }
+        for (int i = unassignedTanks.Count - 1; i >= 0; i--)
+        {
+            unassignedTanks.Add(new Tank(avg, mutationStrength));
             if (unassignedTanks.Count >= concurrentBoards.x * concurrentBoards.y) break;
         }
     }

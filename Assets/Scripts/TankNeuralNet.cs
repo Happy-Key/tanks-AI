@@ -11,30 +11,31 @@ public class Tank
     public float score = 0f;
     public Color color = Random.ColorHSV();
 
-    public Tank(int[] layerSizes)
+    public Tank(int[] layerSizes, bool isRandom)
     {
-        nn = new TankNN(layerSizes);
+        nn = new TankNN(layerSizes, isRandom);
+        if (!isRandom) color = Vector4.zero;
     }
 
     public Tank(Tank parent, float mutationStrength)
     {
         nn = new TankNN(parent.nn);
         nn.Mutate(mutationStrength);
-        color = Color.Lerp(parent.color, Random.ColorHSV(), mutationStrength);
+        color = Color.Lerp(parent.color, Random.ColorHSV(), mutationStrength * 3f);
     }
 }
 
 [System.Serializable]
 public class TankNN
 {
-    Layer[] layers;
+    public Layer[] layers;
 
-    public TankNN(int[] layerSizes)
+    public TankNN(int[] layerSizes, bool isRandom)
     {
         layers = new Layer[layerSizes.Length - 1];
         for (int i = 1; i < layerSizes.Length; i++)
         {
-            layers[i - 1] = new Layer(layerSizes[i - 1], layerSizes[i]);
+            layers[i - 1] = new Layer(layerSizes[i - 1], layerSizes[i], isRandom);
         }
     }
 
@@ -80,11 +81,12 @@ public class Layer
     public float[] weights;
     public float[] biases;
 
-    public Layer(int prevNumNodes, int numNodes)
+    public Layer(int prevNumNodes, int numNodes, bool isRandom)
     {
         weights = new float[prevNumNodes * numNodes];
         biases = new float[numNodes];
-        InitializeWithRandom();
+        if (isRandom) InitializeWithRandom();
+        else InitializeWithZero();
     }
 
     public Layer(Layer parent)
