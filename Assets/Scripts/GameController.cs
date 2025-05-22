@@ -22,6 +22,7 @@ public class GameController : MonoBehaviour
     [SerializeField] private float fitnessToProgress;
     [SerializeField] private SelectionType selectionType;
     [SerializeField] private ReproductionType reproductionType;
+    [SerializeField] private bool useJitterbug;
 
     [Header("Prefabs")]
     [SerializeField] private GameObject pTank;
@@ -399,14 +400,36 @@ public class GameController : MonoBehaviour
                                 t.forward.x,
                                 t.forward.z };
             float[] outputs = tankList[i].nn.FeedForward(inputs);
-            float max = 0f;
             int index = 0;
-            for (int m = 1; m < 5; m++)
+            if (useJitterbug)
             {
-                if (outputs[m] > max)
+                float total = 0;
+                for (int m = 0; m < outputs.Length; m++)
                 {
-                    max = outputs[m];
-                    index = m;
+                    outputs[m] *= outputs[m];
+                    total += outputs[m];
+                }
+                float rand = Random.Range(0f, total);
+                for (int m = 0; m < outputs.Length; m++)
+                {
+                    rand -= outputs[m];
+                    if (rand <= 0f)
+                    {
+                        index = m;
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                float max = 0f;
+                for (int m = 1; m < 5; m++)
+                {
+                    if (outputs[m] > max)
+                    {
+                        max = outputs[m];
+                        index = m;
+                    }
                 }
             }
             bool didHit;
