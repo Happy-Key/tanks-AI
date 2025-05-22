@@ -303,7 +303,7 @@ Transform:
   m_GameObject: {fileID: 963194225}
   serializedVersion: 2
   m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: 0, y: 8, z: 0}
+  m_LocalPosition: {x: -4, y: 8, z: -4}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -345,11 +345,13 @@ MonoBehaviour:
   layerSizes: 05000000080000000800000005000000
   concurrentBoards: {x: 5, y: 5}
   roundLength: 4
-  numRoundsPerGeneration: 5
+  numRoundsPerGeneration: 8
   mutationStrength: 0.04
   fitnessPadding: 0
   difficultyGrowth: 0.02
   fitnessToProgress: 42
+  selectionType: 1
+  reproductionType: 0
   pTank: {fileID: 1780604551840259642, guid: 1ef462a858ef5f242898e9603f6be110, type: 3}
   pTarget: {fileID: 9019497058828367836, guid: 3561fe963dfad0644a03cd896d040ba2, type: 3}
   pShell: {fileID: 0}

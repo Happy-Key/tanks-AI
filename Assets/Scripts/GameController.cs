@@ -19,6 +19,8 @@ public class GameController : MonoBehaviour
     [SerializeField] private float fitnessPadding;
     [SerializeField] private float difficultyGrowth;
     [SerializeField] private float fitnessToProgress;
+    [SerializeField] private SelectionType selectionType;
+    [SerializeField] private ReproductionType reproductionType;
 
     [Header("Prefabs")]
     [SerializeField] private GameObject pTank;
@@ -204,10 +206,11 @@ public class GameController : MonoBehaviour
         {
             roundCounter = 0;
             float totalScore = Scoring();
-            //Selection(totalScore);
-            SelectionByRank();
-            //Reproduction();
-            AveragedReproduction();
+            if (selectionType == SelectionType.Fitness) Selection(totalScore);
+            if (selectionType == SelectionType.Fitness) SelectionByRank();
+            if (reproductionType == ReproductionType.Asexual) Reproduction();
+            if (reproductionType == ReproductionType.Sexual) SexualReproduction();
+            if (reproductionType == ReproductionType.Generation) AveragedReproduction();
             generationCounter++;
         }
         else unassignedTanks = tankList;
@@ -280,8 +283,38 @@ public class GameController : MonoBehaviour
         for (int i = unassignedTanks.Count - 1; i >= 0; i--)
         {
             unassignedTanks.Add(new Tank(unassignedTanks[i], mutationStrength));
-            if (unassignedTanks.Count >= concurrentBoards.x * concurrentBoards.y) break;
+            if (unassignedTanks.Count >= boards.Length) break;
         }
+    }
+
+    private void SexualReproduction()
+    {
+        List<Tank> children = new List<Tank>();
+        for (int f = 0; f < 2; f++)
+        {
+            List<Tank> parents = new List<Tank>(unassignedTanks);
+            while (parents.Count > 1)
+            {
+                Tank child = new Tank(layerSizes, false);
+                int otherParent = Random.Range(1, parents.Count);
+                for (int i = 0; i < child.nn.layers.Length; i++)
+                {
+                    for (int j = 0; j < child.nn.layers[i].weights.Length; j++)
+                    {
+                        child.nn.layers[i].weights[j] += (parents[0].nn.layers[i].weights[j] + parents[otherParent].nn.layers[i].weights[j]) / 2f;
+                    }
+                    for (int j = 0; j < child.nn.layers[i].biases.Length; j++)
+                    {
+                        child.nn.layers[i].biases[j] += (parents[0].nn.layers[i].biases[j] + parents[otherParent].nn.layers[i].biases[j]) / 2f;
+                    }
+                }
+                child.color += (parents[0].color + parents[otherParent].color) / 2f;
+                child = new Tank(child, mutationStrength);
+                children.Add(child);
+            }
+        }
+        unassignedTanks.AddRange(children);
+        while(unassignedTanks.Count < boards.Length) unassignedTanks.Add(new Tank(unassignedTanks[0], mutationStrength));
     }
 
     private void AveragedReproduction()
@@ -357,4 +390,17 @@ public class GameController : MonoBehaviour
             }
         }
     }
+}
+
+enum SelectionType
+{
+    Fitness,
+    Ranking,
+}
+
+enum ReproductionType
+{
+    Asexual,
+    Sexual,
+    Generation,
 }
