@@ -207,9 +207,10 @@ public class GameController : MonoBehaviour
             roundCounter = 0;
             float totalScore = Scoring();
             if (selectionType == SelectionType.Fitness) Selection(totalScore);
-            if (selectionType == SelectionType.Fitness) SelectionByRank();
+            if (selectionType == SelectionType.Ranking) SelectionByRank();
             if (reproductionType == ReproductionType.Asexual) Reproduction();
-            if (reproductionType == ReproductionType.Sexual) SexualReproduction();
+            if (reproductionType == ReproductionType.SexualAverage) SexualAveragedReproduction();
+            if (reproductionType == ReproductionType.SexualCrossing) SexualAveragedReproduction();
             if (reproductionType == ReproductionType.Generation) AveragedReproduction();
             generationCounter++;
         }
@@ -287,7 +288,7 @@ public class GameController : MonoBehaviour
         }
     }
 
-    private void SexualReproduction()
+    private void SexualAveragedReproduction()
     {
         List<Tank> children = new List<Tank>();
         for (int f = 0; f < 2; f++)
@@ -311,10 +312,44 @@ public class GameController : MonoBehaviour
                 child.color += (parents[0].color + parents[otherParent].color) / 2f;
                 child = new Tank(child, mutationStrength);
                 children.Add(child);
+                parents.RemoveAt(otherParent);
+                parents.RemoveAt(0);
             }
         }
         unassignedTanks.AddRange(children);
         while(unassignedTanks.Count < boards.Length) unassignedTanks.Add(new Tank(unassignedTanks[0], mutationStrength));
+    }
+
+    private void SexualCrossingReproduction()
+    {
+        List<Tank> children = new List<Tank>();
+        for (int f = 0; f < 2; f++)
+        {
+            List<Tank> parents = new List<Tank>(unassignedTanks);
+            while (parents.Count > 1)
+            {
+                Tank child = new Tank(layerSizes, false);
+                int otherParent = Random.Range(1, parents.Count);
+                for (int i = 0; i < child.nn.layers.Length; i++)
+                {
+                    for (int j = 0; j < child.nn.layers[i].weights.Length; j++)
+                    {
+                        child.nn.layers[i].weights[j] = Random.Range(0,2) == 0 ? parents[0].nn.layers[i].weights[j] : parents[otherParent].nn.layers[i].weights[j];
+                    }
+                    for (int j = 0; j < child.nn.layers[i].biases.Length; j++)
+                    {
+                        child.nn.layers[i].biases[j] = Random.Range(0, 2) == 0 ? parents[0].nn.layers[i].biases[j] : parents[otherParent].nn.layers[i].biases[j];
+                    }
+                }
+                child.color += (parents[0].color + parents[otherParent].color) / 2f;
+                child = new Tank(child, mutationStrength);
+                children.Add(child);
+                parents.RemoveAt(otherParent);
+                parents.RemoveAt(0);
+            }
+        }
+        unassignedTanks.AddRange(children);
+        while (unassignedTanks.Count < boards.Length) unassignedTanks.Add(new Tank(unassignedTanks[0], mutationStrength));
     }
 
     private void AveragedReproduction()
@@ -401,6 +436,7 @@ enum SelectionType
 enum ReproductionType
 {
     Asexual,
-    Sexual,
+    SexualAverage,
+    SexualCrossing,
     Generation,
 }

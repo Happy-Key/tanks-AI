@@ -351,7 +351,7 @@ MonoBehaviour:
   difficultyGrowth: 0.02
   fitnessToProgress: 42
   selectionType: 1
-  reproductionType: 0
+  reproductionType: 1
   pTank: {fileID: 1780604551840259642, guid: 1ef462a858ef5f242898e9603f6be110, type: 3}
   pTarget: {fileID: 9019497058828367836, guid: 3561fe963dfad0644a03cd896d040ba2, type: 3}
   pShell: {fileID: 0}
@@ -359,7 +359,7 @@ MonoBehaviour:
   pWall: {fileID: 4802099194881210861, guid: e8b5358147c21e448af32aa27fff1c28, type: 3}
   timeScale: 3
   seed: -246886756
-  useRandomSeed: 0
+  useRandomSeed: 1
 --- !u!4 &2122674069
 Transform:
   m_ObjectHideFlags: 0
