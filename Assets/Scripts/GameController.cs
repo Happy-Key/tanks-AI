@@ -17,6 +17,7 @@ public class GameController : MonoBehaviour
     [SerializeField] private int numRoundsPerGeneration;
     [SerializeField] private float mutationStrength;
     [SerializeField] private float fitnessPadding;
+    [SerializeField] private float difficulty;
     [SerializeField] private float difficultyGrowth;
     [SerializeField] private float fitnessToProgress;
     [SerializeField] private SelectionType selectionType;
@@ -33,6 +34,7 @@ public class GameController : MonoBehaviour
     [SerializeField] private float timeScale;
     [SerializeField] private int seed;
     [SerializeField] bool useRandomSeed;
+    [SerializeField] Material boardMaterial;
 
     private List<Tank> tankList = new List<Tank>();
     private List<Tank> unassignedTanks = new List<Tank>();
@@ -40,7 +42,6 @@ public class GameController : MonoBehaviour
 
     private float roundTimer = 0f;
     private int roundCounter = 0;
-    private float difficulty = 0f;
     private int generationCounter = 0;
 
 
@@ -144,10 +145,15 @@ public class GameController : MonoBehaviour
         {
             for (int j = 0; j < concurrentBoards.y; j++)
             {
+                
                 foreach(MeshRenderer child in boards[i * concurrentBoards.y + j].GetComponentsInChildren<MeshRenderer>())
                 {
+                    Destroy(child.material);
+                    child.material = boardMaterial;
+                    Destroy(child.material, roundLength + 1f);
                     child.material.color = unassignedTanks[0].color;
                 }
+                
                 GameObject t = GameObject.Instantiate(pTank, boards[i * concurrentBoards.y + j]);
 
                 t.transform.localPosition = new Vector3(tankX, -0.4f, tankY);
@@ -204,6 +210,24 @@ public class GameController : MonoBehaviour
         roundCounter++;
         if (roundCounter >= numRoundsPerGeneration)
         {
+            /*
+            for (int i = 0; i < concurrentBoards.x; i++)
+            {
+                for (int j = 0; j < concurrentBoards.y; j++)
+                {
+                    Transform board = boards[i * concurrentBoards.y + j];
+                    foreach (MeshRenderer mesh in board.GetComponentsInChildren<MeshRenderer>())
+                    {
+                        Destroy(mesh.material);
+                        Material m = new Material(boardMaterial);
+                        m.color = Color.white;
+                        mesh.material = m;
+                    }
+                }
+            }
+            */
+            print("Materials " + Resources.FindObjectsOfTypeAll(typeof(Material)).Length);
+
             roundCounter = 0;
             float totalScore = Scoring();
             if (selectionType == SelectionType.Fitness) Selection(totalScore);

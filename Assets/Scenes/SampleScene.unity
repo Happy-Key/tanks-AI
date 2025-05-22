@@ -348,6 +348,7 @@ MonoBehaviour:
   numRoundsPerGeneration: 8
   mutationStrength: 0.04
   fitnessPadding: 0
+  difficulty: 0
   difficultyGrowth: 0.02
   fitnessToProgress: 42
   selectionType: 1
@@ -358,8 +359,9 @@ MonoBehaviour:
   pGround: {fileID: 6701339070977284234, guid: 6c93e0d805dda43409989546e6bcc67c, type: 3}
   pWall: {fileID: 4802099194881210861, guid: e8b5358147c21e448af32aa27fff1c28, type: 3}
   timeScale: 3
-  seed: -246886756
-  useRandomSeed: 1
+  seed: -14030912
+  useRandomSeed: 0
+  boardMaterial: {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
 --- !u!4 &2122674069
 Transform:
   m_ObjectHideFlags: 0
