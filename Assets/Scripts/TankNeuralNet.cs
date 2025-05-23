@@ -9,6 +9,7 @@ public class Tank
     public TankNN nn;
     public GameObject target;
     public float score = 0f;
+    public float fuelUsed = 0f;
     public Color color = Random.ColorHSV();
 
     public Tank(int[] layerSizes, bool isRandom)

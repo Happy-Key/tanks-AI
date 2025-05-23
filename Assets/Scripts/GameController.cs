@@ -48,6 +48,8 @@ public class GameController : MonoBehaviour
     private int generationCounter = 0;
 
 
+    private Tank bestTank;
+
     private void Start()
     {
         if (useRandomSeed) seed = Random.Range(int.MinValue, int.MaxValue);
@@ -67,6 +69,15 @@ public class GameController : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.RightArrow)) Time.timeScale *= 2f;
         if (Input.GetKeyDown(KeyCode.LeftArrow)) Time.timeScale /= 2f;
+        if (Input.GetKeyDown(KeyCode.Mouse1))
+        {
+            System.IO.Directory.CreateDirectory(Application.streamingAssetsPath + "/TankData/");
+            int rand = Random.Range(0, int.MaxValue);
+            if (!System.IO.File.Exists(Application.streamingAssetsPath + "/TankData/" + "BestTank_" + generationCounter + "_" + rand))
+            {
+                System.IO.File.WriteAllText(Application.streamingAssetsPath + "/TankData/" + "BestTank_" + generationCounter + "_" + rand, JsonUtility.ToJson(bestTank));
+            }
+        }
         roundTimer += Time.deltaTime;
         if (roundTimer >= roundLength)
         {
@@ -198,6 +209,7 @@ public class GameController : MonoBehaviour
             roundScore += 2f * Mathf.Max(1 + Vector3.Dot(tankList[i].obj.transform.forward, (tankList[i].target.transform.position-tankList[i].obj.transform.position).normalized),
                                                 (1f - distToTarget) * 2f,
                                                 0f);
+            if (distToTarget < 0.5f) roundScore += Mathf.Max(1f - tankList[i].fuelUsed / roundLength, 0f);
             roundScore = Mathf.Pow(roundScore, scoreGamma);
             //roundScore *= roundScore;
             //if (tankList[i].obj.transform.position.y < -5f) roundScore = 0f;
@@ -276,6 +288,7 @@ public class GameController : MonoBehaviour
     private void SelectionByRank()
     {
         tankList.Sort((x, y) => y.score.CompareTo(x.score));
+        bestTank = tankList[0];
         if (tankList.Count % 2 == 1) 
         {
             unassignedTanks.Add(tankList[0]);
@@ -499,6 +512,7 @@ public class GameController : MonoBehaviour
                 default:
                     break;
             }
+            if (index != 0) tankList[i].fuelUsed += Time.fixedDeltaTime;
         }
     }
 }
