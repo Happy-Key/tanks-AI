@@ -17,6 +17,7 @@ public class GameController : MonoBehaviour
     [SerializeField] private int numRoundsPerGeneration;
     [SerializeField] private float mutationStrength;
     [SerializeField] private float fitnessPadding;
+    [SerializeField] private float scoreGamma;
     [SerializeField] private float difficulty;
     [SerializeField] private float difficultyGrowth;
     [SerializeField] private float fitnessToProgress;
@@ -86,7 +87,7 @@ public class GameController : MonoBehaviour
                 terrain.name = "Board (" + (i * concurrentBoards.y + j) + ")";
                 terrain.transform.parent = transform;
                 Transform board = terrain.transform;
-                board.localPosition = new Vector3((i - concurrentBoards.x / 2f) * (gridSize.x + 5f), 0f, (j - concurrentBoards.y / 2f) * (gridSize.y + 5f));
+                board.localPosition = new Vector3((i - concurrentBoards.x / 2f) * (gridSize.x + 3f), 0f, (j - concurrentBoards.y / 2f) * (gridSize.y + 3f));
                 for (int x = -1; x <= gridSize.x; x++)
                 {
                     for (int y = -1; y <= gridSize.y; y++)
@@ -122,25 +123,26 @@ public class GameController : MonoBehaviour
     {
         float tankX, tankY, targetX, targetY;
         float randomRotation = (Random.value * 360f - 180f) * difficulty;
+        float padding = 2f;
         if (roundCounter % 4 == 0 || roundCounter % 4 == 1)
         {
-            tankX = (gridSize.x - 1f) * Random.Range(-0.5f, -0.5f + difficulty);
-            targetX = (gridSize.x - 1f) * Random.Range(0.5f - difficulty, 0.5f);
+            tankX = (gridSize.x - padding) * Random.Range(-0.5f, -0.5f + difficulty);
+            targetX = (gridSize.x - padding) * Random.Range(0.5f - difficulty, 0.5f);
         }
         else
         {
-            tankX = (gridSize.x - 1f) * Random.Range(0.5f - difficulty, 0.5f);
-            targetX = (gridSize.x - 1f) * Random.Range(-0.5f, -0.5f + difficulty);
+            tankX = (gridSize.x - padding) * Random.Range(0.5f - difficulty, 0.5f);
+            targetX = (gridSize.x - padding) * Random.Range(-0.5f, -0.5f + difficulty);
         }
         if (roundCounter % 2 == 0)
         {
-            tankY = (gridSize.y - 1f) * Random.Range(-0.5f, -0.5f + difficulty);
-            targetY = (gridSize.y - 1f) * Random.Range(0.5f - difficulty, 0.5f);
+            tankY = (gridSize.y - padding) * Random.Range(-0.5f, -0.5f + difficulty);
+            targetY = (gridSize.y - padding) * Random.Range(0.5f - difficulty, 0.5f);
         }
         else
         {
-            tankY = (gridSize.y - 1f) * Random.Range(0.5f - difficulty, 0.5f);
-            targetY = (gridSize.y - 1f) * Random.Range(-0.5f, -0.5f + difficulty);
+            tankY = (gridSize.y - padding) * Random.Range(0.5f - difficulty, 0.5f);
+            targetY = (gridSize.y - padding) * Random.Range(-0.5f, -0.5f + difficulty);
         }
 
         for (int i = 0; i < concurrentBoards.x; i++)
@@ -196,8 +198,9 @@ public class GameController : MonoBehaviour
             roundScore += 2f * Mathf.Max(1 + Vector3.Dot(tankList[i].obj.transform.forward, (tankList[i].target.transform.position-tankList[i].obj.transform.position).normalized),
                                                 (1f - distToTarget) * 2f,
                                                 0f);
+            roundScore = Mathf.Pow(roundScore, scoreGamma);
             //roundScore *= roundScore;
-            if (tankList[i].obj.transform.position.y < -5f) roundScore = 0f;
+            //if (tankList[i].obj.transform.position.y < -5f) roundScore = 0f;
             tankList[i].score += roundScore;
         }
 
@@ -280,7 +283,8 @@ public class GameController : MonoBehaviour
         }
         for (int i = 0; i < tankList.Count / 2; i++)
         {
-            if (Random.value > i / tankList.Count)
+            float a = i / tankList.Count;
+            if (Random.value > 3 * a * a - 2 * a * a * a)
             {
                 unassignedTanks.Add(tankList[i]);
             }
@@ -396,7 +400,7 @@ public class GameController : MonoBehaviour
             toTarget.y = 0;
             float magnitude = toTarget.magnitude / gridSize.magnitude;
             toTarget.Normalize();
-
+            /*
             float distToEdge;
             if (t.forward.x == 0f)
             {
@@ -435,11 +439,11 @@ public class GameController : MonoBehaviour
                     else distToEdge = Mathf.Sqrt(1f + 1 / slope / slope) * (gridSize.y / 2f + 1f + t.localPosition.z);
                 }
             }
-
+            */
             float[] inputs = {  toTarget.x,
                                 toTarget.z,
                                 magnitude,
-                                distToEdge,
+                                //distToEdge,
                                 t.forward.x,
                                 t.forward.z };
             float[] outputs = tankList[i].nn.FeedForward(inputs);
