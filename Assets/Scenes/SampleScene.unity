@@ -339,21 +339,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gridSize: {x: 5, y: 5}
-  forwardSpeed: 2
-  backwardSpeed: 1.5
-  turnSpeed: 125
+  forwardSpeed: 4
+  backwardSpeed: 3
+  turnSpeed: 250
   layerSizes: 05000000080000000800000005000000
   concurrentBoards: {x: 5, y: 5}
-  roundLength: 8
+  roundLength: 4
   numRoundsPerGeneration: 8
   mutationStrength: 0.04
   fitnessPadding: 0
   difficulty: 0
   difficultyGrowth: 0.02
-  fitnessToProgress: 6.5
+  fitnessToProgress: 6.4
   selectionType: 1
   reproductionType: 2
-  useJitterbug: 0
+  useJitterbug: 1
   pTank: {fileID: 1780604551840259642, guid: 1ef462a858ef5f242898e9603f6be110, type: 3}
   pTarget: {fileID: 9019497058828367836, guid: 3561fe963dfad0644a03cd896d040ba2, type: 3}
   pShell: {fileID: 0}

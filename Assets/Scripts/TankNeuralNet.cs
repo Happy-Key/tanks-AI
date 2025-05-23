@@ -101,6 +101,7 @@ public class Layer
         {
             biases[i] = parent.biases[i];
         }
+        //if (Random.value < 0.01f) Debug.Log(weights[Random.Range(0, weights.Length)]);
     }
 
     public float[] FeedForward(float[] inputs)
@@ -151,11 +152,11 @@ public class Layer
     {
         for (int i = 0; i < weights.Length; i++)
         {
-            weights[i] = Random.value * 2f - 1f;
+            weights[i] = Utils.RandomGaussian(-1f, 1f);
         }
         for (int i = 0; i < biases.Length; i++)
         {
-            biases[i] = Random.value * 2f - 1f;
+            biases[i] = Utils.RandomGaussian(-1f, 1f);
         }
     }
 

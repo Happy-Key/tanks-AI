@@ -23,6 +23,7 @@ public class GameController : MonoBehaviour
     [SerializeField] private SelectionType selectionType;
     [SerializeField] private ReproductionType reproductionType;
     [SerializeField] private bool useJitterbug;
+    [SerializeField] private bool useWallless;
 
     [Header("Prefabs")]
     [SerializeField] private GameObject pTank;
@@ -85,12 +86,12 @@ public class GameController : MonoBehaviour
                 terrain.name = "Board (" + (i * concurrentBoards.y + j) + ")";
                 terrain.transform.parent = transform;
                 Transform board = terrain.transform;
-                board.localPosition = new Vector3((i - concurrentBoards.x / 2f) * (gridSize.x + 3f), 0f, (j - concurrentBoards.y / 2f) * (gridSize.y + 3f));
+                board.localPosition = new Vector3((i - concurrentBoards.x / 2f) * (gridSize.x + 5f), 0f, (j - concurrentBoards.y / 2f) * (gridSize.y + 5f));
                 for (int x = -1; x <= gridSize.x; x++)
                 {
                     for (int y = -1; y <= gridSize.y; y++)
                     {
-                        if (x == -1 || x == gridSize.x || y == -1 || y == gridSize.y)
+                        if ((x == -1 || x == gridSize.x || y == -1 || y == gridSize.y) && !useWallless)
                         {
                             GameObject w = GameObject.Instantiate(pWall, board);
                             w.transform.localPosition = new Vector3(x - gridSize.x / 2f + 0.5f, 0f, y - gridSize.y / 2f + 0.5f);
@@ -196,6 +197,7 @@ public class GameController : MonoBehaviour
                                                 (1f - distToTarget) * 2f,
                                                 0f);
             //roundScore *= roundScore;
+            if (tankList[i].obj.transform.position.y < -5f) roundScore = 0f;
             tankList[i].score += roundScore;
         }
 
@@ -394,9 +396,50 @@ public class GameController : MonoBehaviour
             toTarget.y = 0;
             float magnitude = toTarget.magnitude / gridSize.magnitude;
             toTarget.Normalize();
+
+            float distToEdge;
+            if (t.forward.x == 0f)
+            {
+                if (t.forward.z > 0) distToEdge = gridSize.y / 2f + 1f - t.localPosition.z;
+                else distToEdge = gridSize.y / 2f + 1f + t.localPosition.z;
+            }
+            if (t.forward.z == 0f)
+            {
+                if (t.forward.x > 0) distToEdge = gridSize.x / 2f + 1f - t.localPosition.x;
+                else distToEdge = gridSize.x / 2f + 1f + t.localPosition.x;
+            }
+            float slope = t.forward.z / t.forward.x;
+            if (t.forward.x > 0)
+            {
+                if (t.forward.z > 0)
+                {
+                    if ((gridSize.y / 2f + 1f - t.localPosition.z) > slope * (gridSize.x / 2f + 1f - t.localPosition.x)) distToEdge = Mathf.Sqrt(1f + slope*slope) * (gridSize.x / 2f + 1f - t.localPosition.x);
+                    else distToEdge = Mathf.Sqrt(1f + 1 / slope / slope) * (gridSize.y / 2f + 1f - t.localPosition.z);
+                }
+                else
+                {
+                    if ((gridSize.y / 2f + 1f + t.localPosition.z) > slope * (gridSize.x / 2f + 1f - t.localPosition.x)) distToEdge = Mathf.Sqrt(1f + slope * slope) * (gridSize.x / 2f + 1f - t.localPosition.x);
+                    else distToEdge = Mathf.Sqrt(1f + 1 / slope / slope) * (gridSize.y / 2f + 1f + t.localPosition.z);
+                }
+            }
+            else
+            {
+                if (t.forward.z > 0)
+                {
+                    if ((gridSize.y / 2f + 1f - t.localPosition.z) > slope * (gridSize.x / 2f + 1f + t.localPosition.x)) distToEdge = Mathf.Sqrt(1f + slope * slope) * (gridSize.x / 2f + 1f + t.localPosition.x);
+                    else distToEdge = Mathf.Sqrt(1f + 1 / slope / slope) * (gridSize.y / 2f + 1f - t.localPosition.z);
+                }
+                else
+                {
+                    if ((gridSize.y / 2f + 1f + t.localPosition.z) > slope * (gridSize.x / 2f + 1f + t.localPosition.x)) distToEdge = Mathf.Sqrt(1f + slope * slope) * (gridSize.x / 2f + 1f + t.localPosition.x);
+                    else distToEdge = Mathf.Sqrt(1f + 1 / slope / slope) * (gridSize.y / 2f + 1f + t.localPosition.z);
+                }
+            }
+
             float[] inputs = {  toTarget.x,
                                 toTarget.z,
                                 magnitude,
+                                distToEdge,
                                 t.forward.x,
                                 t.forward.z };
             float[] outputs = tankList[i].nn.FeedForward(inputs);
